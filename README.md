@@ -21,6 +21,7 @@ This project is volunteer-maintained. It does **not** offer paid support, consul
 - Load profiles from project-root `env-profiles.json`
 - **Tools → Switch Environment** (shortcut `Ctrl+Alt+E`)
 - Write the active profile into a generated `.env` file
+- Remember the last selected profile in the workspace and restore it on project open
 - Status bar widget for the current profile (click to switch again)
 - **Tools → Reload Environment Profiles**
 
@@ -71,9 +72,8 @@ Artifact: `build/distributions/idea-env-switcher-<version>.zip`
 See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
 [enhancement issues](https://github.com/SongYuanKun/idea-env-switcher/issues?q=is%3Aissue+label%3Aenhancement).
 
-Planned after 0.1:
+Planned after 0.2:
 
-- Persist last selected profile
 - Inject variables into Run Configurations
 - Settings UI for profile editing
 - JetBrains Marketplace publication

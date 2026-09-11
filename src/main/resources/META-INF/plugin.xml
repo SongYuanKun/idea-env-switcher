@@ -18,6 +18,10 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <b>0.2.0</b>
+    <ul>
+      <li>Persist last selected profile in the workspace and restore it (including .env) on project open</li>
+    </ul>
     <b>0.1.0</b>
     <ul>
       <li>Initial release: profile switching, .env export, status bar widget</li>
@@ -31,6 +35,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <projectService
                 serviceImplementation="io.github.ideaenvswitcher.service.EnvSwitcherService"/>
+        <projectService
+                serviceImplementation="io.github.ideaenvswitcher.service.EnvSwitcherWorkspaceState"/>
+        <postStartupActivity
+                implementation="io.github.ideaenvswitcher.service.EnvSwitcherStartupActivity"/>
         <statusBarWidgetFactory
                 id="EnvSwitcher"
                 implementation="io.github.ideaenvswitcher.ui.EnvStatusBarWidgetFactory"/>
