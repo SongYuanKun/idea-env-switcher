@@ -1,0 +1,31 @@
+{
+  "profiles": [
+    {
+      "name": "dev",
+      "description": "Local development",
+      "env": {
+        "APP_ENV": "dev",
+        "API_BASE": "http://localhost:8080",
+        "LOG_LEVEL": "DEBUG"
+      }
+    },
+    {
+      "name": "staging",
+      "description": "Shared staging",
+      "env": {
+        "APP_ENV": "staging",
+        "API_BASE": "https://staging.example.com",
+        "LOG_LEVEL": "INFO"
+      }
+    },
+    {
+      "name": "prod",
+      "description": "Production (read-only defaults)",
+      "env": {
+        "APP_ENV": "prod",
+        "API_BASE": "https://api.example.com",
+        "LOG_LEVEL": "WARN"
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+<idea-plugin>
+    <id>io.github.ideaenvswitcher</id>
+    <name>Env Switcher</name>
+    <vendor url="https://github.com/SongYuanKun/idea-env-switcher">SongYuanKun</vendor>
+
+    <description><![CDATA[
+    <p>Switch named environment profiles inside the IDE with one click.</p>
+    <ul>
+      <li>Load profiles from <code>env-profiles.json</code> in the project root</li>
+      <li>Write the active profile into a generated <code>.env</code> file</li>
+      <li>Show the current profile on the status bar</li>
+    </ul>
+    <p>在 IDE 中一键切换命名环境配置：读取项目根目录 <code>env-profiles.json</code>，
+    将当前环境写入 <code>.env</code>，并在状态栏显示。</p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+    <b>0.1.0</b>
+    <ul>
+      <li>Initial release: profile switching, .env export, status bar widget</li>
+    </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <resource-bundle>messages.EnvSwitcherBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceImplementation="io.github.ideaenvswitcher.service.EnvSwitcherService"/>
+        <statusBarWidgetFactory
+                id="EnvSwitcher"
+                implementation="io.github.ideaenvswitcher.ui.EnvStatusBarWidgetFactory"/>
+        <notificationGroup id="Env Switcher" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="EnvSwitcher.SwitchEnvironment"
+                class="io.github.ideaenvswitcher.action.SwitchEnvironmentAction"
+                text="Switch Environment"
+                description="Switch the active environment profile">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt E"/>
+        </action>
+        <action id="EnvSwitcher.ReloadProfiles"
+                class="io.github.ideaenvswitcher.action.ReloadProfilesAction"
+                text="Reload Environment Profiles"
+                description="Reload env-profiles.json from the project root">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

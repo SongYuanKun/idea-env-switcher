@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+.idea/
+.intellijPlatform/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+.env
+run/
+**/__pycache__/
