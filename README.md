@@ -1,30 +1,44 @@
 # Env Switcher
 
-IntelliJ IDEA 插件：在项目中一键切换命名环境配置（dev / staging / prod …）。
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Build](https://github.com/SongYuanKun/idea-env-switcher/actions/workflows/build.yml/badge.svg)](https://github.com/SongYuanKun/idea-env-switcher/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/SongYuanKun/idea-env-switcher)](https://github.com/SongYuanKun/idea-env-switcher/releases)
 
-切换后会把当前 profile 的变量写入项目根目录 `.env`，并在状态栏显示当前环境。
+**Env Switcher** is a free, **non-commercial** open source plugin for IntelliJ IDEA.
+It lets you switch named environment profiles (dev / staging / prod …) with one click.
+
+This project is volunteer-maintained. It does **not** offer paid support, consulting, or commercial editions.
+
+- **License (OSI)**: [Apache License 2.0](https://github.com/SongYuanKun/idea-env-switcher/blob/main/LICENSE)
+- **Latest plugin zip**: [GitHub Releases](https://github.com/SongYuanKun/idea-env-switcher/releases)
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Security**: [SECURITY.md](SECURITY.md)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
 ## Features
 
-- 从项目根目录 `env-profiles.json` 读取多套环境
-- `Tools → Switch Environment`（快捷键 `Ctrl+Alt+E`）快速切换
-- 自动生成 / 覆盖 `.env`
-- 状态栏显示当前 profile，点击可再次切换
-- `Tools → Reload Environment Profiles` 热重载配置
+- Load profiles from project-root `env-profiles.json`
+- **Tools → Switch Environment** (shortcut `Ctrl+Alt+E`)
+- Write the active profile into a generated `.env` file
+- Status bar widget for the current profile (click to switch again)
+- **Tools → Reload Environment Profiles**
+
+## Install
+
+1. Download `idea-env-switcher-*.zip` from [Releases](https://github.com/SongYuanKun/idea-env-switcher/releases).
+2. IntelliJ IDEA → **Settings → Plugins → ⚙️ → Install Plugin from Disk…**
+3. Restart the IDE if prompted.
+
+Requires **IntelliJ IDEA 2024.3+** (`sinceBuild=243`).
 
 ## Quick start
 
-1. 将 [examples/env-profiles.json](examples/env-profiles.json) 复制到你的项目根目录，命名为 `env-profiles.json`，按需修改。
-2. 用 Gradle 运行沙箱 IDE：
+1. Copy [examples/env-profiles.json](examples/env-profiles.json) to your project root as `env-profiles.json` and edit it.
+2. **Tools → Switch Environment**, pick a profile.
+3. Check that `.env` was generated/updated and the status bar shows `Env: <name>`.
 
-```bash
-export JAVA_HOME=/path/to/jdk-21
-./gradlew runIde
-```
-
-3. 在沙箱中打开任意带 `env-profiles.json` 的项目，执行 **Tools → Switch Environment**。
-
-### `env-profiles.json` 格式
+### `env-profiles.json` format
 
 ```json
 {
@@ -41,31 +55,38 @@ export JAVA_HOME=/path/to/jdk-21
 }
 ```
 
-## Build
+## Develop from source
 
 ```bash
+export JAVA_HOME=/path/to/jdk-21
+./gradlew test
+./gradlew runIde
 ./gradlew buildPlugin
 ```
 
-产物：`build/distributions/idea-env-switcher-0.1.0.zip`，可在 IDE 中 **Install Plugin from Disk**。
+Artifact: `build/distributions/idea-env-switcher-<version>.zip`
 
-## Requirements
+## Roadmap
 
-- JDK 21+
-- IntelliJ IDEA 2024.3+（`sinceBuild=243`）
+See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
+[enhancement issues](https://github.com/SongYuanKun/idea-env-switcher/issues?q=is%3Aissue+label%3Aenhancement).
 
-## Roadmap (post-0.1)
+Planned after 0.1:
 
-- [ ] 记住上次选择的 profile（workspace 持久化）
-- [ ] 将变量注入 Run Configuration
-- [ ] Settings 页：编辑 profile / 忽略规则
-- [ ] 支持 `.env.*.yml` 多文件布局
-- [ ] 发布到 JetBrains Marketplace
+- Persist last selected profile
+- Inject variables into Run Configurations
+- Settings UI for profile editing
+- JetBrains Marketplace publication
+
+## Non-commercial / open source statement
+
+Env Switcher is published solely as free open source software for the community.
+There is no commercial product, paid tier, or company sponsorship tied to day-to-day
+development. One-time voluntary donations for infrastructure (if any) do not change
+the free nature of the software.
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Copyright 2026 SongYuanKun
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).

@@ -1,14 +1,17 @@
-# Contributing
+# Contributing to Env Switcher
 
-感谢你对 Env Switcher 的兴趣。
+Thanks for your interest in contributing. This is a **non-commercial, volunteer-maintained**
+open source IntelliJ IDEA plugin under the [Apache License 2.0](LICENSE).
 
-## 开发环境
+Please also read our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-- JDK 21+
-- IntelliJ IDEA（建议 Ultimate 或 Community 2024.3+）
-- 克隆仓库后用 IDEA 打开，等待 Gradle 同步
+## Development setup
 
-常用命令：
+- JDK **21+**
+- IntelliJ IDEA 2024.3+ (Community or Ultimate)
+- Clone the repository and open it in IDEA; wait for Gradle sync
+
+Useful commands:
 
 ```bash
 ./gradlew test
@@ -16,16 +19,35 @@
 ./gradlew buildPlugin
 ```
 
-## 提交约定
+Plugin zip output: `build/distributions/idea-env-switcher-<version>.zip`
 
-- 一个 PR 只做一件事
-- 代码注释用中文（简洁）；对外文档可用中英双语
-- 新增解析 / 文件写入逻辑请附带单元测试
-- 不要提交 `.env`、密钥或本机路径
+## How to contribute
 
-## Issue / PR
+1. Search [existing issues](https://github.com/SongYuanKun/idea-env-switcher/issues) before opening a new one.
+2. For larger features, open an issue first so we can align on scope.
+3. Fork the repo, create a topic branch from `main`.
+4. Keep PRs focused (one concern per PR).
+5. Add or update tests when changing parsing, file I/O, or other non-trivial logic.
+6. Update [CHANGELOG.md](CHANGELOG.md) under **Unreleased** when user-visible behavior changes.
+7. Run `./gradlew test` before requesting review.
 
-- Bug：说明 IDE 版本、复现步骤、期望与实际行为
-- Feature：说明使用场景与是否愿意实现
+## Coding notes
 
-本项目为非商业开源软件，不提供付费支持。
+- Prefer clear, small Java classes over large “god” classes.
+- Comments in code may be concise Chinese; user-facing strings go through the resource bundle.
+- Do not commit `.env`, secrets, local paths, or IDE sandbox outputs (`.intellijPlatform/`).
+
+## Commit / PR style
+
+- Commit messages: short imperative summary (e.g. `Add workspace persistence for last profile`).
+- Link related issues in the PR description (`Fixes #123`).
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for private vulnerability reporting. Do not disclose security
+issues in public issues until a fix is available.
+
+## License of contributions
+
+By submitting a contribution, you agree that your work is provided under the same
+Apache License 2.0 terms as this project, and that you have the right to submit it.

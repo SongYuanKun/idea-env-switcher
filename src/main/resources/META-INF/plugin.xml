@@ -4,6 +4,7 @@
     <vendor url="https://github.com/SongYuanKun/idea-env-switcher">SongYuanKun</vendor>
 
     <description><![CDATA[
+    <p><b>Env Switcher</b> — free, non-commercial open source plugin.</p>
     <p>Switch named environment profiles inside the IDE with one click.</p>
     <ul>
       <li>Load profiles from <code>env-profiles.json</code> in the project root</li>
@@ -11,7 +12,9 @@
       <li>Show the current profile on the status bar</li>
     </ul>
     <p>在 IDE 中一键切换命名环境配置：读取项目根目录 <code>env-profiles.json</code>，
-    将当前环境写入 <code>.env</code>，并在状态栏显示。</p>
+    将当前环境写入 <code>.env</code>，并在状态栏显示。本插件为非商业开源软件。</p>
+    <p>Source: <a href="https://github.com/SongYuanKun/idea-env-switcher">GitHub</a>
+    · License: Apache-2.0</p>
     ]]></description>
 
     <change-notes><![CDATA[

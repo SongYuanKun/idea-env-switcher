@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem in Env Switcher
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Env Switcher. Please fill in as much as possible.
+  - type: input
+    id: ide-version
+    attributes:
+      label: IDE version
+      description: Help → About
+      placeholder: IntelliJ IDEA 2024.3.6
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add env-profiles.json
+        2. Tools → Switch Environment
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Optional. Paste relevant idea.log snippets or attach screenshots.
