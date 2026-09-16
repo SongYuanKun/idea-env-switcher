@@ -10,6 +10,8 @@ public final class EnvSwitcherStartupActivity implements StartupActivity, DumbAw
 
     @Override
     public void runActivity(@NotNull Project project) {
-        EnvSwitcherService.getInstance(project).restorePersistedProfile();
+        EnvSwitcherService service = EnvSwitcherService.getInstance(project);
+        service.reloadProfiles();
+        service.restorePersistedProfile();
     }
 }

@@ -4,7 +4,6 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -28,15 +27,11 @@ public final class SwitchEnvironmentAction extends AnAction implements DumbAware
         if (project == null) {
             return;
         }
-        showSwitcher(project, e.getDataContext());
+        showSwitcher(project);
     }
 
     /** 供状态栏等入口复用。 */
     public static void showSwitcher(@NotNull Project project) {
-        showSwitcher(project, SimpleDataContext.getProjectContext(project));
-    }
-
-    private static void showSwitcher(@NotNull Project project, @NotNull com.intellij.openapi.actionSystem.DataContext dataContext) {
         EnvSwitcherService service = EnvSwitcherService.getInstance(project);
         List<EnvProfile> profiles = service.getProfiles();
         if (profiles.isEmpty()) {
@@ -72,7 +67,7 @@ public final class SwitchEnvironmentAction extends AnAction implements DumbAware
                         return FINAL_CHOICE;
                     }
                 });
-        popup.showInBestPositionFor(dataContext);
+        popup.showCenteredInCurrentWindow(project);
     }
 
     @Override

@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JetBrains Marketplace publication
 - Broader runner coverage beyond Java Run Configurations
 
+## [0.3.1] - 2026-09-16
+
+### Fixed
+- Show the environment chooser in the current project window when no focused editor or context component is available
+- Refresh generated `.env` files asynchronously so environment switching is safe on the event dispatch thread
+- Reload profiles after project startup before restoring the last selected environment
+
 ## [0.3.0] - 2026-09-15
 
 ### Added
@@ -34,7 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example config under `examples/env-profiles.json`
 - Unit tests for profile JSON parsing
 
-[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SongYuanKun/idea-env-switcher/releases/tag/v0.3.0
 [0.2.0]: https://github.com/SongYuanKun/idea-env-switcher/releases/tag/v0.2.0
 [0.1.0]: https://github.com/SongYuanKun/idea-env-switcher/releases/tag/v0.1.0

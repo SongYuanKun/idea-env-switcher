@@ -136,9 +136,15 @@ public final class EnvSwitcherService {
     }
 
     private void refreshVirtualFile(@NotNull Path path) {
-        VirtualFile file = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path);
+        LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+        VirtualFile file = fileSystem.findFileByNioFile(path);
         if (file != null) {
-            file.refresh(false, false);
+            file.refresh(true, false);
+            return;
+        }
+        VirtualFile parent = fileSystem.findFileByNioFile(path.getParent());
+        if (parent != null) {
+            parent.refresh(true, false);
         }
     }
 

@@ -20,6 +20,12 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <b>0.3.1</b>
+    <ul>
+      <li>Fix the environment chooser not appearing when no focused editor or context component is available</li>
+      <li>Refresh generated <code>.env</code> files asynchronously to avoid event dispatch thread violations</li>
+      <li>Reload profiles on project startup before restoring the last selected environment</li>
+    </ul>
     <b>0.3.0</b>
     <ul>
       <li>Inject the active profile into Java Run Configurations at runtime (does not rewrite saved configs)</li>
