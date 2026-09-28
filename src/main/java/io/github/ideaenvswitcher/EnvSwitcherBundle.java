@@ -8,13 +8,12 @@ import org.jetbrains.annotations.PropertyKey;
 import java.util.function.Supplier;
 
 /** 插件文案 Bundle。 */
-public final class EnvSwitcherBundle extends DynamicBundle {
+public final class EnvSwitcherBundle {
 
     public static final String BUNDLE = "messages.EnvSwitcherBundle";
-    private static final EnvSwitcherBundle INSTANCE = new EnvSwitcherBundle();
+    private static final DynamicBundle INSTANCE = new DynamicBundle(EnvSwitcherBundle.class, BUNDLE);
 
     private EnvSwitcherBundle() {
-        super(BUNDLE);
     }
 
     public static @NotNull @Nls String message(
