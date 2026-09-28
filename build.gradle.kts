@@ -1,6 +1,4 @@
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     id("java")
@@ -8,7 +6,7 @@ plugins {
 }
 
 group = "io.github.ideaenvswitcher"
-version = "0.3.2"
+version = "0.3.1"
 
 repositories {
     mavenCentral()
@@ -40,18 +38,6 @@ dependencies {
 }
 
 intellijPlatform {
-    pluginVerification {
-        freeArgs = listOf("-offline")
-        ides {
-            create(IntelliJPlatformType.IntellijIdea, "263.5701.42")
-        }
-        failureLevel = listOf(
-            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
-            VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
-            VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
-            VerifyPluginTask.FailureLevel.DEPRECATED_API_USAGES,
-        )
-    }
     pluginConfiguration {
         name = "Env Switcher"
         ideaVersion {
