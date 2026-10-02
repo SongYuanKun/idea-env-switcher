@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Document Marketplace installation and remove the completed publication TODO
 - Pin the Gradle 9.0.0 distribution checksum
+- Replace deprecated Node.js 20 CI actions with verified Node.js 24 releases and pin the Ubuntu runner
 
 ### Planned
 - Settings UI for profile management

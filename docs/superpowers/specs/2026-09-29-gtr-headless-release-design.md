@@ -7,7 +7,7 @@
 以下记录实施时的现场证据和调整，优先于下方保留的原始草案。
 
 - 0.3.2 已在 GitHub Release 和 Marketplace Stable 上线，Marketplace 更新 `1181789` 的 `approve=true`。两平台外层签名 ZIP 不同，包内 JAR 完全相同，SHA-256 为 `7682f6e5d2711922cadc413ca6f6e38330540dfa027a37a6d94b07c8cb934c95`。不再重复上传此版本。
-- 用户已要求完成待办并直接集成 main。实施文件为 Bash 入口 `scripts/release-on-gtr.sh`、Python 3 标准库编排模块 `scripts/release_gtr.py`、安全测试 `scripts/tests/test_release_gtr.py`、README、CHANGELOG、Wrapper 分发校验值及本文。GitHub build-only 工作流未变，不安装持久 runner 或服务。
+- 用户已要求完成待办并直接集成 main。实施文件为 Bash 入口 `scripts/release-on-gtr.sh`、Python 3 标准库编排模块 `scripts/release_gtr.py`、安全测试 `scripts/tests/test_release_gtr.py`、README、CHANGELOG、Wrapper 分发校验值及本文。CI 检查发现 Actions Node 20/setup-java v4 弃用告警后，另外更新 build.yml 中三个 action 的版本并固定官方 commit SHA、runner 固定 ubuntu-24.04；其 build-only 职责不变，不安装持久 runner 或服务。
 - 沿用已有 `~/.jdks/jdk-21.0.12.1+1`，不新增系统安装。官方 Adoptium Temurin 发布 tar 的 SHA-256 为 `ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94`，已校验并与本机全部 454 个文件/符号链接比对，tree digest 同为 `8752eb91e52234353bb3163bcbf05d8b943daeb181d6f13b1ae68613ccd5b5c5`。准备/实际上传前重新核验 JDK。
 - `gh` 固定官方 2.70.0 Linux amd64 二进制，已从经官方 checksums 核验的 tar 确认其二进制摘要。Gradle 9.0.0 Wrapper 和分发包固定官方 SHA-256，完整 properties 拒绝未知值和重复键。独立 ZIP Signer CLI 固定 JetBrains 0.1.43 及官方 asset digest。无需 curl/jq 或第三方 Python 包；使用 git、gh、openssl 和标准库。
 - 所有动作都在仓库级排他锁中运行，防止两个发布者重复上传或 prepare 清理另一个发布者已核验的产物。实际写入前以排他创建和 fsync 保存无秘密 inflight marker；未知结果只读回查一次，不自动重试或覆盖 marker。
