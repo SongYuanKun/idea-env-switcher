@@ -19,10 +19,12 @@ This project is volunteer-maintained. It does **not** offer paid support, consul
 
 ## Features
 
+- Manage profiles and variables in **Settings → Tools → Env Switcher** or **Tools → Manage Environment Profiles**
 - Load profiles from project-root `env-profiles.json`
 - **Tools → Switch Environment** (shortcut `Ctrl+Alt+E`)
 - Write the active profile into a generated `.env` file
 - **Inject the active profile into Java Run Configurations at runtime** (Application / JUnit / etc.; does not rewrite saved configs)
+- Inject the active profile into **local Python Run Configurations** when the optional **Python Community** plugin is installed
 - Remember the last selected profile in the workspace and restore it on project open
 - Status bar widget for the current profile (click to switch again)
 - **Tools → Reload Environment Profiles**
@@ -42,10 +44,25 @@ Requires **IntelliJ IDEA 2024.3+** (`sinceBuild=243`) with the bundled Java plug
 
 ## Quick start
 
-1. Copy [examples/env-profiles.json](examples/env-profiles.json) to your project root as `env-profiles.json` and edit it.
+1. Open **Tools → Manage Environment Profiles**, add a profile and its variables, and click **Apply**. Alternatively, copy [examples/env-profiles.json](examples/env-profiles.json) to your project root as `env-profiles.json`.
 2. **Tools → Switch Environment**, pick a profile.
 3. Check that `.env` was generated/updated and the status bar shows `Env: <name>`.
-4. Run an Application / JUnit configuration — process environment includes the active profile variables (same-name keys from the profile win).
+4. Run an Application / JUnit configuration, or a local Python configuration with Python Community installed — process environment includes the active profile variables (same-name keys from the profile win).
+
+### Edit profiles
+
+Use **Settings → Tools → Env Switcher** to add, rename or remove profiles, edit
+descriptions, and add or remove variable rows. Changes remain staged until
+**Apply**; **Reset** reloads the current file and discards staged edits. Applying
+edits to the active profile also refreshes `.env` and the workspace selection.
+Deleting the active profile clears its selection and clears `.env` only when
+its contents still match the generated file, preserving manual changes.
+
+Names must be unique and non-empty. Variable names use letters, digits and
+underscores and cannot start with a digit. Invalid JSON is displayed as an error;
+the editor refuses to overwrite a malformed file or an external change.
+**Reload Environment Profiles** also updates the selected environment after
+changes made directly to the JSON file.
 
 ### `env-profiles.json` format
 
@@ -66,10 +83,11 @@ Requires **IntelliJ IDEA 2024.3+** (`sinceBuild=243`) with the bundled Java plug
 
 ### How Run Configuration injection works
 
-- Injection happens **when the configuration starts**, via a Java `RunConfigurationExtension`.
+- Injection happens **when the configuration starts**, via the Java or optional Python `RunConfigurationExtension`.
 - Saved Run Configuration XML under `.idea/` is **not** modified.
 - Profile values **override** existing env keys with the same name; other keys from the Run Configuration are kept.
-- Non-Java runners (for example some Gradle/Node setups) are not covered yet; they can still read the generated `.env` if your tooling supports it.
+- Python support requires the **Python Community** (`PythonCore`) plugin and a local interpreter. Remote / target Python execution is outside this support scope.
+- Gradle, Node.js and npm runners can read the generated `.env` when configured by their tooling; direct injection into those runners is not supported.
 
 ## Develop from source
 
@@ -112,15 +130,16 @@ Set up these **local files**, outside the repository, once:
 
 | Path under `~/.config/idea-env-switcher/` | Contents | Permissions |
 | --- | --- | --- |
-| `signing/chain.crt` | Existing author certificate chain | `0600` |
+| `signing/chain.crt` | Author certificate chain (self-signed is supported) | `0600` |
 | `signing/private.pem` | Existing **encrypted** signing key | `0600` |
 | `signing/private-key-password` | Key password, one line | `0600` |
 | `marketplace.token` | Marketplace permanent token | `0600` |
 
 Both the base directory and `signing/` must be owned by you with permissions
-`0700`. Transfer the existing certificate and encrypted key from Mac over SSH
-once; keep subsequent builds and releases on GTR. Do not create a replacement
-signing identity. For the initial Marketplace token, log in using **GTR Firefox**
+`0700`. Keep the certificate and encrypted key on GTR and back them up securely.
+A new GTR signing certificate was created for 0.4.0 at the author's request;
+older released packages retain their existing signatures. For the initial
+Marketplace token, log in using your browser
 and open [My Tokens](https://plugins.jetbrains.com/author/me/tokens).
 Enter the password and token in a local interactive terminal without echo:
 
@@ -134,7 +153,7 @@ unset release_password
 read -rsp 'Marketplace token: ' release_token; printf '\n'
 printf '%s' "$release_token" > ~/.config/idea-env-switcher/marketplace.token
 unset release_token
-# After transferring the two existing signing files:
+# Secure the signing files and Marketplace token:
 chmod 600 ~/.config/idea-env-switcher/signing/* ~/.config/idea-env-switcher/marketplace.token
 ```
 
@@ -165,10 +184,9 @@ Python 3 is required; all Python dependencies are in the standard library.
 See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
 [enhancement issues](https://github.com/SongYuanKun/idea-env-switcher/issues?q=is%3Aissue+label%3Aenhancement).
 
-Planned after 0.3:
-
-- Settings UI for profile editing
-- Broader runner coverage beyond Java Run Configurations
+The settings editor and local Python runner support shipped in 0.4.0.
+Runner support boundaries are described above; further coverage can be tracked
+in enhancement issues.
 
 ## Non-commercial / open source statement
 

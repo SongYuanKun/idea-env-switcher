@@ -7,19 +7,26 @@
     <p><b>Env Switcher</b> — free, non-commercial open source plugin.</p>
     <p>Switch named environment profiles inside the IDE with one click.</p>
     <ul>
+      <li>Edit profiles and variables in Settings → Tools → Env Switcher</li>
       <li>Load profiles from <code>env-profiles.json</code> in the project root</li>
       <li>Write the active profile into a generated <code>.env</code> file</li>
-      <li>Inject the active profile into Java Run Configurations at runtime</li>
+      <li>Inject the active profile into Java and local Python Run Configurations at runtime (Python Community is optional)</li>
       <li>Show the current profile on the status bar</li>
     </ul>
     <p>在 IDE 中一键切换命名环境配置：读取项目根目录 <code>env-profiles.json</code>，
-    将当前环境写入 <code>.env</code>，运行时注入 Java Run Configuration，并在状态栏显示。
+    将当前环境写入 <code>.env</code>，提供设置界面编辑配置，运行时注入 Java 和本地 Python Run Configuration（需 Python Community 插件），并在状态栏显示。
     本插件为非商业开源软件。</p>
     <p>Source: <a href="https://github.com/SongYuanKun/idea-env-switcher">GitHub</a>
     · License: Apache-2.0</p>
     ]]></description>
 
     <change-notes><![CDATA[
+    <b>0.4.0</b>
+    <ul>
+      <li>Add project settings for editing profiles and variables, with validation and external-change protection</li>
+      <li>Refresh the active environment after settings changes</li>
+      <li>Add optional runtime environment injection for local Python Run Configurations</li>
+    </ul>
     <b>0.3.2</b>
     <ul>
       <li>Replace the deprecated DynamicBundle constructor for IntelliJ IDEA 2026.3 compatibility</li>
@@ -46,10 +53,14 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends optional="true" config-file="env-switcher-python.xml">PythonCore</depends>
 
     <resource-bundle>messages.EnvSwitcherBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable parentId="tools" id="io.github.ideaenvswitcher.settings"
+                displayName="Env Switcher"
+                instance="io.github.ideaenvswitcher.ui.EnvSwitcherConfigurable"/>
         <projectService
                 serviceImplementation="io.github.ideaenvswitcher.service.EnvSwitcherService"/>
         <projectService
@@ -65,6 +76,12 @@
     </extensions>
 
     <actions>
+        <action id="EnvSwitcher.ManageProfiles"
+                class="io.github.ideaenvswitcher.action.ManageProfilesAction"
+                text="Manage Environment Profiles"
+                description="Add, edit and remove environment profiles">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <action id="EnvSwitcher.SwitchEnvironment"
                 class="io.github.ideaenvswitcher.action.SwitchEnvironmentAction"
                 text="Switch Environment"

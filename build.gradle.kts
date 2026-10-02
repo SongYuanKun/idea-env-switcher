@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.ideaenvswitcher"
-version = "0.3.2"
+version = "0.4.0"
 
 repositories {
     mavenCentral()
@@ -28,6 +28,7 @@ dependencies {
         // Community 便于本地验证；插件同样可在 Ultimate 中运行
         intellijIdeaCommunity("2024.3.6")
         bundledPlugin("com.intellij.java")
+        plugin("PythonCore:243.24978.46")
         testFramework(TestFrameworkType.Platform)
         pluginVerifier()
         zipSigner()

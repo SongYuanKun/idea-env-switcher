@@ -2,7 +2,7 @@ package io.github.ideaenvswitcher.service;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.EdtRule;
-import com.intellij.testFramework.ProjectRule;
+import io.github.ideaenvswitcher.test.EnvProjectRule;
 import com.intellij.testFramework.RunsInEdt;
 import io.github.ideaenvswitcher.model.EnvProfile;
 import org.junit.Rule;
@@ -19,13 +19,13 @@ import static org.junit.Assert.assertTrue;
 public class EnvSwitcherEdtThreadingTest {
 
     @Rule
-    public final ProjectRule projectRule = new ProjectRule();
+    public final EnvProjectRule projectRule = new EnvProjectRule();
 
     @Rule
     public final EdtRule edtRule = new EdtRule();
 
     @Test
-    @RunsInEdt(writeIntent = false)
+    @RunsInEdt
     public void switchesProfileOnEdtWithoutWriteAccess() throws Exception {
         assertFalse(ApplicationManager.getApplication().isWriteAccessAllowed());
         Path basePath = Path.of(projectRule.getProject().getBasePath());

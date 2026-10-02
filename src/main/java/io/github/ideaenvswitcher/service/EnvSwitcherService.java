@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import io.github.ideaenvswitcher.model.EnvProfile;
-import io.github.ideaenvswitcher.model.EnvProfileParser;
+import io.github.ideaenvswitcher.model.EnvProfileStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,11 @@ public final class EnvSwitcherService {
 
     public EnvSwitcherService(@NotNull Project project) {
         this.project = project;
-        reloadProfiles();
+        try {
+            reloadProfiles();
+        } catch (IllegalStateException e) {
+            LOG.warn("Invalid profiles file; correct it before reloading.");
+        }
     }
 
     public static @NotNull EnvSwitcherService getInstance(@NotNull Project project) {
@@ -48,6 +52,10 @@ public final class EnvSwitcherService {
 
     public @Nullable String getCurrentProfileName() {
         return currentProfileName;
+    }
+
+    public synchronized @Nullable EnvProfile getCurrentProfile() {
+        return currentProfileName == null ? null : findByName(currentProfileName);
     }
 
     public @Nullable EnvProfile findByName(@NotNull String name) {
@@ -68,30 +76,108 @@ public final class EnvSwitcherService {
     }
 
     /** 重新读取 env-profiles.json。 */
-    public int reloadProfiles() {
-        profiles.clear();
+    public synchronized int reloadProfiles() {
         Path path = profilesPath();
+        EnvProfile previous = getCurrentProfile();
         if (path == null || !Files.isRegularFile(path)) {
-            fireChanged();
+            profiles.clear();
+            clearSelection();
+            try {
+                clearGeneratedEnvironment(previous);
+            } catch (IOException e) {
+                throw new IllegalStateException("Profiles were reloaded, but .env could not be updated. Check project write permissions.");
+            } finally {
+                fireChanged();
+            }
             return 0;
         }
         try {
-            profiles.addAll(EnvProfileParser.parseFile(path));
+            List<EnvProfile> loaded = EnvProfileStore.load(path).profiles();
+            profiles.clear();
+            profiles.addAll(loaded);
             if (currentProfileName != null && findByName(currentProfileName) == null) {
-                currentProfileName = null;
-                EnvSwitcherWorkspaceState.getInstance(project).setLastProfileName(null);
+                clearSelection();
             }
-            fireChanged();
+            EnvProfile selected = getCurrentProfile();
+            try {
+                if (selected == null) clearGeneratedEnvironment(previous);
+                else applyProfile(selected, true);
+            } catch (IOException e) {
+                throw new IllegalStateException("Profiles were reloaded, but .env could not be updated. Check project write permissions.");
+            } finally {
+                fireChanged();
+            }
             return profiles.size();
-        } catch (Exception e) {
-            LOG.warn("Failed to load " + PROFILES_FILE, e);
-            fireChanged();
+        } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
+    /** Save staged settings and refresh the selected environment, including renames. */
+    public synchronized @NotNull EnvProfileStore.Snapshot saveProfiles(
+            @NotNull EnvProfileStore.Snapshot expected, @NotNull List<EnvProfile> edited,
+            @Nullable String selectedName) throws IOException {
+        Path path = profilesPath();
+        if (path == null) throw new IOException("Project base path is unavailable");
+        EnvProfile previous = currentProfileName == null ? null : findByName(currentProfileName);
+        EnvProfileStore.Snapshot saved = EnvProfileStore.save(path, expected, edited);
+        profiles.clear();
+        profiles.addAll(edited);
+        EnvProfile selected = selectedName == null ? null : findByName(selectedName);
+        if (selected == null) {
+            clearSelection();
+            try {
+                clearGeneratedEnvironment(previous);
+            } catch (IOException e) {
+                throw new ProfileSaveException(saved);
+            } finally {
+                fireChanged();
+                refreshVirtualFile(path);
+            }
+        } else {
+            // Reflect the saved document even if the generated .env cannot be written.
+            currentProfileName = selectedName;
+            EnvSwitcherWorkspaceState.getInstance(project).setLastProfileName(selectedName);
+            try {
+                applyProfile(selected, true);
+            } catch (IOException e) {
+                fireChanged();
+                throw new ProfileSaveException(saved);
+            } finally {
+                refreshVirtualFile(path);
+            }
+        }
+        return saved;
+    }
+
+    private void clearGeneratedEnvironment(@Nullable EnvProfile previous) throws IOException {
+        Path base = projectBasePath();
+        if (previous == null || base == null) return;
+        Path envFile = base.resolve(DOT_ENV_FILE);
+        // Clear only the generated file we own; preserve user edits to .env.
+        if (Files.isRegularFile(envFile)
+                && Files.readString(envFile, StandardCharsets.UTF_8).equals(DotEnvWriter.toDotEnvContent(previous))) {
+            Files.writeString(envFile, DotEnvWriter.toEmptyDotEnvContent(), StandardCharsets.UTF_8);
+            refreshVirtualFile(envFile);
+        }
+    }
+
+    public static final class ProfileSaveException extends IOException {
+        private final EnvProfileStore.Snapshot saved;
+        private ProfileSaveException(EnvProfileStore.Snapshot saved) {
+            super("Profiles were saved, but .env could not be updated. Check project write permissions and switch the environment again.");
+            this.saved = saved;
+        }
+        public @NotNull EnvProfileStore.Snapshot getSavedSnapshot() { return saved; }
+    }
+
+    private void clearSelection() {
+        currentProfileName = null;
+        EnvSwitcherWorkspaceState.getInstance(project).setLastProfileName(null);
+    }
+
     /** 切换到指定配置，写入 .env，并持久化到 workspace。 */
-    public void switchTo(@NotNull EnvProfile profile) throws IOException {
+    public synchronized void switchTo(@NotNull EnvProfile profile) throws IOException {
         applyProfile(profile, true);
     }
 
@@ -99,7 +185,7 @@ public final class EnvSwitcherService {
      * 根据 workspace 中记录的上次选择恢复环境。
      * 若 profile 仍存在，则同步写入 .env。
      */
-    public void restorePersistedProfile() {
+    public synchronized void restorePersistedProfile() {
         String persisted = EnvSwitcherWorkspaceState.getInstance(project).getLastProfileName();
         if (persisted == null || persisted.isBlank()) {
             return;

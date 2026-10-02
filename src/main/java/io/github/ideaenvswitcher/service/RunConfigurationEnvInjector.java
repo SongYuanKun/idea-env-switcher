@@ -2,6 +2,7 @@ package io.github.ideaenvswitcher.service;
 
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.SimpleProgramParameters;
+import com.intellij.openapi.project.Project;
 import io.github.ideaenvswitcher.model.EnvProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +14,12 @@ import java.util.Map;
 public final class RunConfigurationEnvInjector {
 
     private RunConfigurationEnvInjector() {
+    }
+
+    public static @Nullable EnvProfile currentProfile(@NotNull Project project) {
+        if (project.isDisposed()) return null;
+        EnvSwitcherService service = EnvSwitcherService.getInstance(project);
+        return service.getCurrentProfile();
     }
 
     public static void applyProfile(

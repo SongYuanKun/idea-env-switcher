@@ -42,7 +42,7 @@ public final class EnvProfileParser {
         List<EnvProfile> result = new ArrayList<>();
         for (JsonElement element : profiles) {
             if (!element.isJsonObject()) {
-                continue;
+                throw new IllegalArgumentException("Each profile must be a JSON object");
             }
             JsonObject profile = element.getAsJsonObject();
             if (!profile.has("name") || profile.get("name").isJsonNull()) {
@@ -57,7 +57,10 @@ public final class EnvProfileParser {
                 description = profile.get("description").getAsString();
             }
             Map<String, String> env = new LinkedHashMap<>();
-            if (profile.has("env") && profile.get("env").isJsonObject()) {
+            if (profile.has("env") && !profile.get("env").isJsonObject()) {
+                throw new IllegalArgumentException("Profile env must be a JSON object");
+            }
+            if (profile.has("env")) {
                 JsonObject envObject = profile.getAsJsonObject("env");
                 for (Map.Entry<String, JsonElement> entry : envObject.entrySet()) {
                     JsonElement value = entry.getValue();

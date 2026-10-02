@@ -1,6 +1,6 @@
 package io.github.ideaenvswitcher.service;
 
-import com.intellij.testFramework.ProjectRule;
+import io.github.ideaenvswitcher.test.EnvProjectRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -8,11 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class EnvSwitcherStartupActivityTest {
 
     @Rule
-    public final ProjectRule projectRule = new ProjectRule();
+    public final EnvProjectRule projectRule = new EnvProjectRule();
 
     @Test
     public void reloadsProfilesWhenProjectStartupCompletes() throws Exception {
@@ -29,5 +30,14 @@ public class EnvSwitcherStartupActivityTest {
         new EnvSwitcherStartupActivity().runActivity(projectRule.getProject());
 
         assertEquals(1, service.getProfiles().size());
+    }
+
+    @Test
+    public void invalidProfilesDoNotAbortProjectStartup() throws Exception {
+        Path base = Path.of(projectRule.getProject().getBasePath());
+        Files.createDirectories(base);
+        Files.writeString(base.resolve("env-profiles.json"), "invalid json");
+        new EnvSwitcherStartupActivity().runActivity(projectRule.getProject());
+        assertNull(EnvSwitcherService.getInstance(projectRule.getProject()).getCurrentProfileName());
     }
 }

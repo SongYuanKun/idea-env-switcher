@@ -5,9 +5,6 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunnerSettings;
-import com.intellij.openapi.project.Project;
-import io.github.ideaenvswitcher.model.EnvProfile;
-import io.github.ideaenvswitcher.service.EnvSwitcherService;
 import io.github.ideaenvswitcher.service.RunConfigurationEnvInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +22,7 @@ public final class EnvRunConfigurationExtension extends RunConfigurationExtensio
             @NotNull T configuration,
             @NotNull JavaParameters params,
             @Nullable RunnerSettings runnerSettings) {
-        RunConfigurationEnvInjector.applyProfile(params, currentProfile(configuration.getProject()));
+        RunConfigurationEnvInjector.applyProfile(params, RunConfigurationEnvInjector.currentProfile(configuration.getProject()));
     }
 
     @Override
@@ -34,18 +31,6 @@ public final class EnvRunConfigurationExtension extends RunConfigurationExtensio
             @Nullable RunnerSettings runnerSettings,
             @NotNull GeneralCommandLine cmdLine,
             @NotNull String runnerId) {
-        RunConfigurationEnvInjector.applyProfile(cmdLine, currentProfile(configuration.getProject()));
-    }
-
-    private static @Nullable EnvProfile currentProfile(@NotNull Project project) {
-        if (project.isDisposed()) {
-            return null;
-        }
-        EnvSwitcherService service = EnvSwitcherService.getInstance(project);
-        String name = service.getCurrentProfileName();
-        if (name == null || name.isBlank()) {
-            return null;
-        }
-        return service.findByName(name);
+        RunConfigurationEnvInjector.applyProfile(cmdLine, RunConfigurationEnvInjector.currentProfile(configuration.getProject()));
     }
 }

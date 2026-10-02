@@ -3,6 +3,9 @@ package io.github.ideaenvswitcher.service;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
+import io.github.ideaenvswitcher.EnvSwitcherBundle;
 import org.jetbrains.annotations.NotNull;
 
 /** 项目打开后恢复上次选中的环境，并同步 .env。 */
@@ -11,7 +14,14 @@ public final class EnvSwitcherStartupActivity implements StartupActivity, DumbAw
     @Override
     public void runActivity(@NotNull Project project) {
         EnvSwitcherService service = EnvSwitcherService.getInstance(project);
-        service.reloadProfiles();
+        try {
+            service.reloadProfiles();
+        } catch (IllegalStateException e) {
+            NotificationGroupManager.getInstance().getNotificationGroup("Env Switcher")
+                    .createNotification(EnvSwitcherBundle.message("notify.error", e.getMessage()), NotificationType.WARNING)
+                    .notify(project);
+            return;
+        }
         service.restorePersistedProfile();
     }
 }
