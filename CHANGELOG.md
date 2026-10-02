@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Headless GTR release tooling with signed package verification, publication checks, and duplicate-upload prevention
+
+### Changed
+- Document Marketplace installation and remove the completed publication TODO
+- Pin the Gradle 9.0.0 distribution checksum
+
 ### Planned
 - Settings UI for profile management
-- JetBrains Marketplace publication
 - Broader runner coverage beyond Java Run Configurations
 
 ## [0.3.2] - 2026-09-28

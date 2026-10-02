@@ -11,6 +11,7 @@ This project is volunteer-maintained. It does **not** offer paid support, consul
 
 - **License (OSI)**: [Apache License 2.0](https://github.com/SongYuanKun/idea-env-switcher/blob/main/LICENSE)
 - **Latest plugin zip**: [GitHub Releases](https://github.com/SongYuanKun/idea-env-switcher/releases)
+- **Marketplace**: [Env Switcher](https://plugins.jetbrains.com/plugin/34289-env-switcher)
 - **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Security**: [SECURITY.md](SECURITY.md)
@@ -28,13 +29,16 @@ This project is volunteer-maintained. It does **not** offer paid support, consul
 
 ## Install
 
+In IntelliJ IDEA, open **Settings → Plugins → Marketplace**, search for
+**Env Switcher**, and click **Install**.
+
+For offline installation:
+
 1. Download `idea-env-switcher-*.zip` from [Releases](https://github.com/SongYuanKun/idea-env-switcher/releases).
 2. IntelliJ IDEA → **Settings → Plugins → ⚙️ → Install Plugin from Disk…**
 3. Restart the IDE if prompted.
 
 Requires **IntelliJ IDEA 2024.3+** (`sinceBuild=243`) with the bundled Java plugin.
-
-> JetBrains Marketplace listing is planned; until then, install from GitHub Releases.
 
 ## Quick start
 
@@ -78,6 +82,84 @@ export JAVA_HOME=/path/to/jdk-21
 
 Artifact: `build/distributions/idea-env-switcher-<version>.zip`
 
+## Release from GTR
+
+Run [scripts/release-on-gtr.sh](scripts/release-on-gtr.sh) on `kun-GTR`.
+Routine releases use the command line, with no browser or persistent runner.
+GitHub Actions continues to build and test without release credentials.
+
+```bash
+# Read-only: compare the published packages and show missing destinations.
+./scripts/release-on-gtr.sh publish --dry-run
+
+# Build, test, verify compatibility, sign, then independently verify the ZIP.
+./scripts/release-on-gtr.sh prepare
+
+# Upload prepared content only to destinations that are still missing it.
+./scripts/release-on-gtr.sh publish
+```
+
+The script requires `main` synchronized with `origin/main`, a `v<version>` tag,
+and release notes in `CHANGELOG.md`. Plugin build inputs must match the tag;
+later documentation and release-tool commits are allowed. `prepare` and writes
+also require a clean tracked working tree. Gradle 9.0.0 and its wrapper have
+pinned checksums. The script verifies the official `gh` 2.70.0 Linux amd64 binary
+and the full Temurin 21.0.12.1+1 installation at `~/.jdks/jdk-21.0.12.1+1`.
+ZIP Signer 0.1.43 is downloaded from JetBrains with a pinned SHA-256 on the
+first `prepare`; it is stored under `~/.cache/idea-env-switcher/`.
+
+Set up these **local files**, outside the repository, once:
+
+| Path under `~/.config/idea-env-switcher/` | Contents | Permissions |
+| --- | --- | --- |
+| `signing/chain.crt` | Existing author certificate chain | `0600` |
+| `signing/private.pem` | Existing **encrypted** signing key | `0600` |
+| `signing/private-key-password` | Key password, one line | `0600` |
+| `marketplace.token` | Marketplace permanent token | `0600` |
+
+Both the base directory and `signing/` must be owned by you with permissions
+`0700`. Transfer the existing certificate and encrypted key from Mac over SSH
+once; keep subsequent builds and releases on GTR. Do not create a replacement
+signing identity. For the initial Marketplace token, log in using **GTR Firefox**
+and open [My Tokens](https://plugins.jetbrains.com/author/me/tokens).
+Enter the password and token in a local interactive terminal without echo:
+
+```bash
+umask 077
+mkdir -p ~/.config/idea-env-switcher/signing
+chmod 700 ~/.config/idea-env-switcher ~/.config/idea-env-switcher/signing
+read -rsp 'Signing key password: ' release_password; printf '\n'
+printf '%s' "$release_password" > ~/.config/idea-env-switcher/signing/private-key-password
+unset release_password
+read -rsp 'Marketplace token: ' release_token; printf '\n'
+printf '%s' "$release_token" > ~/.config/idea-env-switcher/marketplace.token
+unset release_token
+# After transferring the two existing signing files:
+chmod 600 ~/.config/idea-env-switcher/signing/* ~/.config/idea-env-switcher/marketplace.token
+```
+
+GitHub authentication uses `gh auth status` and the existing CLI credential
+store. Secrets are passed only to the signing subprocess or the Marketplace
+HTTP request; they are never command arguments or release metadata. Gradle
+signing disables the daemon, build cache, and configuration cache.
+
+`prepare` records the commit, certificate, ZIP, and every runtime file digest
+in ignored `build/release/prepared.json`. `publish` checks them again and asks
+for the exact version and both destinations in the current terminal before
+writing. Already published matching packages need no signing secrets and cause
+zero write requests; a submitted Marketplace update is not uploaded again
+while awaiting approval. Differing runtime content stops publication.
+
+A repository lock prevents concurrent preparation or publication. An uncertain
+upload leaves an operation marker under `.git/`. The script reads
+the remote state once and never retries the write automatically. If it cannot
+confirm the result, inspect the release/update before resolving that marker.
+The existing 0.3.2 packages were built on Mac: a GTR rebuild has different
+`Build-OS`/`Build-JVM` manifest fields, so it must not replace those packages.
+
+Release safety tests: `python3 -m unittest discover -s scripts/tests -v`.
+Python 3 is required; all Python dependencies are in the standard library.
+
 ## Roadmap
 
 See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
@@ -86,7 +168,6 @@ See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
 Planned after 0.3:
 
 - Settings UI for profile editing
-- JetBrains Marketplace publication
 - Broader runner coverage beyond Java Run Configurations
 
 ## Non-commercial / open source statement
