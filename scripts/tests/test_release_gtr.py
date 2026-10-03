@@ -69,6 +69,42 @@ class PackageTests(unittest.TestCase):
                 release.private_file(link)
 
 
+class CredentialTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.obj = release.Release(Path(directory.name), "0.4.0", "notes")
+        self.obj.config = Path(directory.name) / "credentials"
+        self.obj.config.mkdir(mode=0o700)
+        signing = self.obj.config / "signing"
+        signing.mkdir(mode=0o700)
+        for name, value in {"chain.crt": "test certificate",
+                            "private.pem": "BEGIN ENCRYPTED PRIVATE KEY",
+                            "private-key-password": "test password"}.items():
+            path = signing / name
+            path.write_text(value)
+            path.chmod(0o600)
+
+    def read_token(self, value):
+        path = self.obj.config / "marketplace.token"
+        path.write_text(value)
+        path.chmod(0o600)
+        # Certificate validation is unrelated to token parsing; no real keys are used.
+        with patch.object(release, "command", return_value=b"test public key"):
+            return self.obj.credentials(need_token=True)["PUBLISH_TOKEN"]
+
+    def test_preserves_current_and_legacy_marketplace_tokens(self):
+        for value in ("opaque.fixture.token", "perm:legacy-fixture"):
+            with self.subTest(value=value):
+                self.assertEqual(self.read_token(value + "\r\n"), value)
+
+    def test_rejects_empty_tokens_and_header_control_characters(self):
+        for value in ("", "\n", "perm:one\ntwo", "perm:one\rtwo", "perm:one\ttwo",
+                      "perm:one two", "perm:one\x00two", "perm:one\x7ftwo", "perm:非ASCII"):
+            with self.subTest(value=value), self.assertRaises(release.ReleaseError):
+                self.read_token(value)
+
+
 class PublishTests(unittest.TestCase):
     def test_prepare_and_publish_cannot_hold_the_same_repository_lock(self):
         with tempfile.TemporaryDirectory() as directory:

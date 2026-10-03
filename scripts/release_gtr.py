@@ -267,9 +267,10 @@ class Release:
         result = {"CERTIFICATE_CHAIN": certificate.decode(), "PRIVATE_KEY": private_key.decode(),
                   "PRIVATE_KEY_PASSWORD": password.decode()}
         if need_token:
-            token = private_file(self.config / "marketplace.token").decode().strip()
-            if not token.startswith("perm:") or "\n" in token:
-                raise ReleaseError("marketplace.token must contain a permanent token")
+            token = private_file(self.config / "marketplace.token").decode().rstrip("\r\n")
+            # Marketplace also issues opaque tokens without the legacy "perm:" prefix.
+            if not token or any(not 0x21 <= ord(char) <= 0x7e for char in token):
+                raise ReleaseError("marketplace.token must contain one nonempty ASCII token without whitespace")
             result["PUBLISH_TOKEN"] = token
         return result
 
