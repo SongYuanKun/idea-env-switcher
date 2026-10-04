@@ -1,5 +1,7 @@
 package io.github.ideaenvswitcher.ui;
 
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -9,6 +11,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import io.github.ideaenvswitcher.EnvSwitcherBundle;
+import io.github.ideaenvswitcher.model.DotEnvParser;
 import io.github.ideaenvswitcher.model.EnvProfile;
 import io.github.ideaenvswitcher.model.EnvProfileStore;
 import io.github.ideaenvswitcher.service.EnvSwitcherService;
@@ -36,6 +39,8 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
     private JBTable table;
     private JButton addProfile;
     private JButton removeProfile;
+    private JButton duplicateProfile;
+    private JButton importFile;
     private JButton addVariable;
     private JButton removeVariable;
     private JLabel error;
@@ -52,6 +57,7 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         if (panel != null) return panel;
         profiles = new DefaultListModel<>();
         list = new JBList<>(profiles);
+        list.setName("profile.list");
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(event -> {
             if (loading || event.getValueIsAdjusting()) return;
@@ -79,6 +85,21 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
                 display(list.getSelectedValue());
             }
         });
+        duplicateProfile = button("settings.profile.duplicate", "profile.duplicate", () -> {
+            flush();
+            if (editing == null) return;
+            String base = (editing.name.isBlank() ? "profile" : editing.name.strip()) + " copy";
+            addDraft(new Draft(editing, uniqueName(base)));
+        });
+        importFile = button("settings.profile.import", "profile.import", () -> {
+            var descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                    .withTitle(message("settings.import.title"))
+                    .withDescription(message("settings.import.description"))
+                    .withShowHiddenFiles(true)
+                    .withHideIgnored(false);
+            var chosen = FileChooser.chooseFile(descriptor, panel, project, null);
+            if (chosen != null) importProfile(chosen.toNioPath());
+        });
         addVariable = button("settings.variable.add", "variable.add", () -> {
             stopEditing();
             variables.addRow(new Object[]{"", ""});
@@ -92,7 +113,9 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         JPanel left = new JPanel(new BorderLayout(0, 8));
         left.add(new JLabel(message("settings.profiles")), BorderLayout.NORTH);
         left.add(new JBScrollPane(list), BorderLayout.CENTER);
-        left.add(buttons(addProfile, removeProfile), BorderLayout.SOUTH);
+        JPanel profileButtons = new JPanel(new GridLayout(2, 2, 4, 4));
+        for (JButton button : new JButton[]{addProfile, removeProfile, duplicateProfile, importFile}) profileButtons.add(button);
+        left.add(profileButtons, BorderLayout.SOUTH);
         JPanel fields = new JPanel(new GridLayout(2, 2, 8, 8));
         JLabel nameLabel = new JLabel(message("settings.profile.name")); nameLabel.setLabelFor(name);
         JLabel descriptionLabel = new JLabel(message("settings.profile.description")); descriptionLabel.setLabelFor(description);
@@ -101,13 +124,13 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         right.add(fields, BorderLayout.NORTH);
         right.add(new JBScrollPane(table), BorderLayout.CENTER);
         right.add(buttons(addVariable, removeVariable), BorderLayout.SOUTH);
-        JBSplitter splitter = new JBSplitter(false, 0.3f);
+        JBSplitter splitter = new JBSplitter(false, 0.36f);
         splitter.setFirstComponent(left); splitter.setSecondComponent(right);
         panel = new JPanel(new BorderLayout(8, 8));
         panel.setPreferredSize(new Dimension(720, 420));
         panel.add(new JLabel(message("settings.help")), BorderLayout.NORTH);
         panel.add(splitter, BorderLayout.CENTER);
-        error = new JLabel(); panel.add(error, BorderLayout.SOUTH);
+        error = new JLabel(); error.setName("settings.error"); panel.add(error, BorderLayout.SOUTH);
         reset();
         return panel;
     }
@@ -163,6 +186,7 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
             loading = false;
         }
         addProfile.setEnabled(snapshot != null);
+        importFile.setEnabled(snapshot != null);
         error.setText(loadError == null ? "" : loadError);
         if (!profiles.isEmpty()) list.setSelectedIndex(0);
         display(list.getSelectedValue());
@@ -180,6 +204,38 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
             result.add(new EnvProfile(draft.name, draft.description, env));
         }
         return result;
+    }
+
+    /** Import into a new draft; only Apply persists it through the existing save path. */
+    void importProfile(Path file) {
+        if (panel == null || snapshot == null) return;
+        try {
+            var imported = DotEnvParser.parseFile(file);
+            if (imported.isEmpty()) throw new IllegalArgumentException(message("settings.import.empty"));
+            flush();
+            String filename = file.getFileName().toString();
+            String base = filename.equals(".env") ? "imported"
+                    : filename.startsWith(".env.") ? filename.substring(5)
+                    : filename.endsWith(".env") ? filename.substring(0, filename.length() - 4) : filename;
+            base = base.replace('\r', ' ').replace('\n', ' ').strip();
+            addDraft(new Draft(new EnvProfile(uniqueName(base.isEmpty() ? "imported" : base), null, imported), null));
+            error.setText("");
+        } catch (IOException e) {
+            error.setText(message("settings.import.read.error"));
+        } catch (IllegalArgumentException e) {
+            error.setText(e.getMessage());
+        }
+    }
+
+    private void addDraft(Draft draft) {
+        profiles.addElement(draft);
+        list.setSelectedIndex(profiles.size() - 1);
+    }
+
+    private String uniqueName(String base) {
+        String candidate = base;
+        for (int number = 2; hasName(candidate); number++) candidate = base + " (" + number + ")";
+        return candidate;
     }
 
     private void flush() {
@@ -203,6 +259,7 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         boolean enabled = draft != null;
         name.setEnabled(enabled); description.setEnabled(enabled); table.setEnabled(enabled);
         removeProfile.setEnabled(enabled); addVariable.setEnabled(enabled); removeVariable.setEnabled(enabled);
+        duplicateProfile.setEnabled(enabled);
     }
 
     private boolean hasName(String value) {
@@ -232,6 +289,7 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         panel = null; profiles = null; list = null; editing = null; snapshot = null;
         name = null; description = null; variables = null; table = null;
         addProfile = null; removeProfile = null; addVariable = null; removeVariable = null; error = null;
+        duplicateProfile = null; importFile = null;
     }
 
     private static final class Draft {
@@ -244,6 +302,11 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
             name = profile.getName();
             description = profile.getDescription() == null ? "" : profile.getDescription();
             profile.getEnv().forEach((key, value) -> rows.add(new String[]{key, value}));
+        }
+        private Draft(Draft source, String name) {
+            this.name = name;
+            description = source.description;
+            for (String[] row : source.rows) rows.add(row.clone());
         }
         @Override public String toString() { return name.isEmpty() ? message("settings.profile.unnamed") : name; }
     }

@@ -20,6 +20,7 @@ This project is volunteer-maintained. It does **not** offer paid support, consul
 ## Features
 
 - Manage profiles and variables in **Settings → Tools → Env Switcher** or **Tools → Manage Environment Profiles**
+- Copy an existing profile or import a `.env` file as a new profile
 - Load profiles from project-root `env-profiles.json`
 - **Tools → Switch Environment** (shortcut `Ctrl+Alt+E`)
 - Write the active profile into a generated `.env` file
@@ -63,6 +64,29 @@ underscores and cannot start with a digit. Invalid JSON is displayed as an error
 the editor refuses to overwrite a malformed file or an external change.
 **Reload Environment Profiles** also updates the selected environment after
 changes made directly to the JSON file.
+
+### Copy and import profiles
+
+In **Settings → Tools → Env Switcher**:
+
+- Select a profile and click **Copy Profile** to copy its current name,
+  description and variables, including staged edits. The copy is independent
+  and receives a unique name such as `dev copy` or `dev copy (2)`.
+- Click **Import .env…** and select a UTF-8 environment file up to 1 MiB.
+  Each import creates a new profile. For example, `.env.staging` becomes
+  `staging`; importing it again creates `staging (2)`.
+- Review the values, then click **Apply** to save, or **Reset** to discard
+  the staged copies and imports. The current environment remains selected.
+
+Imports accept `KEY=value`, empty values, comments, optional `export`, single
+or double quotes, and quoted multiline values. Double quotes decode `\\`,
+`\"`, `\n`, `\r` and `\t`; single-quoted values are literal. Variable references
+such as `${HOST}` and shell expressions remain literal text. Duplicate keys,
+invalid variable names and malformed assignments are rejected with a line
+number; the editor preserves existing drafts when an import fails.
+
+Importing reads the selected file into the editor. **Apply** follows the normal
+save behavior described above, including refreshing the active profile's `.env`.
 
 ### `env-profiles.json` format
 
@@ -184,7 +208,8 @@ Python 3 is required; all Python dependencies are in the standard library.
 See [CHANGELOG.md](CHANGELOG.md) (Unreleased) and open
 [enhancement issues](https://github.com/SongYuanKun/idea-env-switcher/issues?q=is%3Aissue+label%3Aenhancement).
 
-The settings editor and local Python runner support shipped in 0.4.0.
+The settings editor and local Python runner support shipped in 0.4.0;
+profile copying and `.env` import shipped in 0.5.0.
 Runner support boundaries are described above; further coverage can be tracked
 in enhancement issues.
 

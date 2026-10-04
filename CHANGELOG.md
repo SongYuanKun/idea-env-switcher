@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-04
+
+### Added
+- Copy an environment profile with its staged description and variables, an independent copy, and automatic unique naming
+- Import UTF-8 `.env` files as new profiles in the settings editor; review changes before Apply or discard them with Reset
+- Parse dotenv comments, optional `export`, quoted and multiline values, and common double-quoted escapes while preserving variable references as literal text
+- Report invalid imports with line numbers while preserving existing drafts and keeping variable values out of diagnostics
+
+### Fixed
+- Accept current opaque Marketplace tokens as well as legacy permanent tokens in the GTR release tooling
+
 ## [0.4.0] - 2026-10-02
 
 ### Added
@@ -62,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example config under `examples/env-profiles.json`
 - Unit tests for profile JSON parsing
 
-[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.0...v0.3.1

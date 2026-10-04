@@ -8,19 +8,26 @@
     <p>Switch named environment profiles inside the IDE with one click.</p>
     <ul>
       <li>Edit profiles and variables in Settings → Tools → Env Switcher</li>
+      <li>Copy profiles or import existing <code>.env</code> files into the settings editor</li>
       <li>Load profiles from <code>env-profiles.json</code> in the project root</li>
       <li>Write the active profile into a generated <code>.env</code> file</li>
       <li>Inject the active profile into Java and local Python Run Configurations at runtime (Python Community is optional)</li>
       <li>Show the current profile on the status bar</li>
     </ul>
     <p>在 IDE 中一键切换命名环境配置：读取项目根目录 <code>env-profiles.json</code>，
-    将当前环境写入 <code>.env</code>，提供设置界面编辑配置，运行时注入 Java 和本地 Python Run Configuration（需 Python Community 插件），并在状态栏显示。
+    将当前环境写入 <code>.env</code>，提供设置界面编辑和复制配置、导入已有 <code>.env</code> 文件，运行时注入 Java 和本地 Python Run Configuration（需 Python Community 插件），并在状态栏显示。
     本插件为非商业开源软件。</p>
     <p>Source: <a href="https://github.com/SongYuanKun/idea-env-switcher">GitHub</a>
     · License: Apache-2.0</p>
     ]]></description>
 
     <change-notes><![CDATA[
+    <b>0.5.0</b>
+    <ul>
+      <li>Copy environment profiles with independent variables and automatic unique naming</li>
+      <li>Import UTF-8 <code>.env</code> files as new profiles; Apply saves changes and Reset discards them</li>
+      <li>Support dotenv comments, quotes, multiline values and export prefixes, with line-numbered validation errors</li>
+    </ul>
     <b>0.4.0</b>
     <ul>
       <li>Add project settings for editing profiles and variables, with validation and external-change protection</li>
