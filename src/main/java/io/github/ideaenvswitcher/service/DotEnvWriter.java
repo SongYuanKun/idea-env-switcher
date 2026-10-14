@@ -26,6 +26,8 @@ public final class DotEnvWriter {
         return HEADER + "# No active profile\n";
     }
 
+    static boolean isGenerated(String content) { return content.startsWith(HEADER); }
+
     static @NotNull String escapeValue(@NotNull String value) {
         if (value.isEmpty()) {
             return "\"\"";

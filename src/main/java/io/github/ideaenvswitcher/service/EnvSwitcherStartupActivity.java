@@ -3,8 +3,8 @@ package io.github.ideaenvswitcher.service;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import io.github.ideaenvswitcher.EnvNotifications;
 import io.github.ideaenvswitcher.EnvSwitcherBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,9 +17,7 @@ public final class EnvSwitcherStartupActivity implements StartupActivity, DumbAw
         try {
             service.reloadProfiles();
         } catch (IllegalStateException e) {
-            NotificationGroupManager.getInstance().getNotificationGroup("Env Switcher")
-                    .createNotification(EnvSwitcherBundle.message("notify.error", e.getMessage()), NotificationType.WARNING)
-                    .notify(project);
+            EnvNotifications.notify(project, EnvSwitcherBundle.message("notify.error", e.getMessage()), NotificationType.WARNING);
             return;
         }
         service.restorePersistedProfile();

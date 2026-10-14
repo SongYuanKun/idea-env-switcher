@@ -1,7 +1,7 @@
 package io.github.ideaenvswitcher.action;
 
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -10,6 +10,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import io.github.ideaenvswitcher.EnvNotifications;
 import io.github.ideaenvswitcher.EnvSwitcherBundle;
 import io.github.ideaenvswitcher.model.EnvProfile;
 import io.github.ideaenvswitcher.service.EnvSwitcherService;
@@ -35,7 +36,7 @@ public final class SwitchEnvironmentAction extends AnAction implements DumbAware
         EnvSwitcherService service = EnvSwitcherService.getInstance(project);
         List<EnvProfile> profiles = service.getProfiles();
         if (profiles.isEmpty()) {
-            showNotification(project, EnvSwitcherBundle.message("dialog.empty"), NotificationType.WARNING);
+            EnvNotifications.notify(project, EnvSwitcherBundle.message("dialog.empty"), NotificationType.WARNING);
             return;
         }
 
@@ -55,11 +56,11 @@ public final class SwitchEnvironmentAction extends AnAction implements DumbAware
                         if (finalChoice) {
                             try {
                                 service.switchTo(selectedValue);
-                                showNotification(project,
+                                EnvNotifications.notify(project,
                                         EnvSwitcherBundle.message("notify.switched", selectedValue.getName()),
                                         NotificationType.INFORMATION);
                             } catch (Exception ex) {
-                                showNotification(project,
+                                EnvNotifications.notify(project,
                                         EnvSwitcherBundle.message("notify.error", ex.getMessage()),
                                         NotificationType.ERROR);
                             }
@@ -76,17 +77,7 @@ public final class SwitchEnvironmentAction extends AnAction implements DumbAware
     }
 
     @Override
-    public @NotNull com.intellij.openapi.actionSystem.ActionUpdateThread getActionUpdateThread() {
-        return com.intellij.openapi.actionSystem.ActionUpdateThread.BGT;
-    }
-
-    private static void showNotification(
-            @NotNull Project project,
-            @NotNull String content,
-            @NotNull NotificationType type) {
-        NotificationGroupManager.getInstance()
-                .getNotificationGroup("Env Switcher")
-                .createNotification(content, type)
-                .notify(project);
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 }

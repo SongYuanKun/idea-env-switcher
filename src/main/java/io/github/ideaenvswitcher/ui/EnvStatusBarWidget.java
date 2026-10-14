@@ -77,6 +77,7 @@ public final class EnvStatusBarWidget implements StatusBarWidget, StatusBarWidge
 
     private void refresh() {
         ApplicationManager.getApplication().invokeLater(() -> {
+            if (project.isDisposed()) return;
             StatusBar bar = statusBar != null
                     ? statusBar
                     : WindowManager.getInstance().getStatusBar(project);

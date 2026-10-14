@@ -77,4 +77,10 @@ class DotEnvParserTest {
         assertThrows(IOException.class, () -> DotEnvParser.parseFile(file));
         assertThrows(IOException.class, () -> DotEnvParser.parseFile(directory));
     }
+
+    @Test
+    void preservesHashesUnlessTheyStartAnUnquotedComment() {
+        assertEquals(Map.of("PASSWORD", "abc#123", "URL", "https://x/#frag", "A", "v", "B", "", "C", "v"),
+                DotEnvParser.parse("PASSWORD=abc#123\nURL=https://x/#frag\nA=v # note\nB=#note\nC=v\t#note\n"));
+    }
 }
