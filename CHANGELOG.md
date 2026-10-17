@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-14
+
+### Fixed
+- Preserve embedded `#` characters in unquoted dotenv values; comments start only at the beginning or after a space or tab
+- Back up a hand-written `.env` before switching; refuse symbolic links and existing backup conflicts
+- Keep variable cell editors open while Settings checks for changes, and ignore empty variable rows on Apply
+- Keep profiles available during reload and avoid status bar refreshes after project close
+
+### Changed
+- Run release-tool safety tests in CI alongside plugin tests
+
 ## [0.5.0] - 2026-10-04
 
 ### Added
@@ -73,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example config under `examples/env-profiles.json`
 - Unit tests for profile JSON parsing
 
-[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/SongYuanKun/idea-env-switcher/compare/v0.3.1...v0.3.2

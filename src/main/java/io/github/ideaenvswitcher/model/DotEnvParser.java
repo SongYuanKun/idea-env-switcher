@@ -34,7 +34,7 @@ public final class DotEnvParser {
                 int start = cursor.index;
                 if (cursor.end() || !nameStart(cursor.peek())) throw invalid(line, "Invalid variable name.");
                 cursor.take();
-                while (!cursor.end() && (nameStart(cursor.peek()) || Character.isDigit(cursor.peek()) && cursor.peek() <= '9')) cursor.take();
+                while (!cursor.end() && (nameStart(cursor.peek()) || cursor.peek() >= '0' && cursor.peek() <= '9')) cursor.take();
                 String key = content.substring(start, cursor.index);
                 cursor.spaces();
                 if (cursor.end() || cursor.take() != '=') throw invalid(line, "Expected a KEY=value assignment.");
@@ -49,7 +49,11 @@ public final class DotEnvParser {
                     }
                 } else {
                     start = cursor.index;
-                    while (!cursor.end() && cursor.peek() != '#' && !cursor.newline()) cursor.take();
+                    while (!cursor.end() && !cursor.newline()) {
+                        if (cursor.peek() == '#' && (cursor.index == start
+                                || horizontalSpace(content.charAt(cursor.index - 1)))) break;
+                        cursor.take();
+                    }
                     value = content.substring(start, cursor.index).stripTrailing();
                 }
                 values.put(key, value);

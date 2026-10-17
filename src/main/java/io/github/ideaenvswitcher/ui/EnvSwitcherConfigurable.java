@@ -138,7 +138,7 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
     @Override public boolean isModified() {
         if (panel == null || snapshot == null) return false;
         try {
-            return !EnvProfileStore.toJson(collect()).equals(EnvProfileStore.toJson(snapshot.profiles()));
+            return !EnvProfileStore.toJson(collectCurrent()).equals(EnvProfileStore.toJson(snapshot.profiles()));
         } catch (IllegalArgumentException e) {
             return true;
         }
@@ -194,14 +194,21 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
 
     private List<EnvProfile> collect() {
         flush();
+        return collectCurrent();
+    }
+
+    private List<EnvProfile> collectCurrent() {
         List<EnvProfile> result = new ArrayList<>();
         for (int i = 0; i < profiles.size(); i++) {
             Draft draft = profiles.get(i);
             var env = new LinkedHashMap<String, String>();
-            for (String[] row : draft.rows) {
+            List<String[]> rows = draft == editing ? currentRows() : draft.rows;
+            for (String[] row : rows) {
+                if (row[0].isBlank() && row[1].isEmpty()) continue;
                 if (env.putIfAbsent(row[0], row[1]) != null) throw new IllegalArgumentException(message("settings.variable.duplicate"));
             }
-            result.add(new EnvProfile(draft.name, draft.description, env));
+            result.add(new EnvProfile(draft == editing ? name.getText() : draft.name,
+                    draft == editing ? description.getText() : draft.description, env));
         }
         return result;
     }
@@ -236,6 +243,23 @@ public final class EnvSwitcherConfigurable implements SearchableConfigurable {
         String candidate = base;
         for (int number = 2; hasName(candidate); number++) candidate = base + " (" + number + ")";
         return candidate;
+    }
+
+    private List<String[]> currentRows() {
+        List<String[]> rows = new ArrayList<>();
+        for (int row = 0; row < variables.getRowCount(); row++) {
+            String[] values = new String[2];
+            for (int column = 0; column < 2; column++) {
+                Object value = variables.getValueAt(row, column);
+                if (table.isEditing() && table.convertRowIndexToModel(table.getEditingRow()) == row
+                        && table.convertColumnIndexToModel(table.getEditingColumn()) == column) {
+                    value = table.getCellEditor().getCellEditorValue();
+                }
+                values[column] = String.valueOf(value);
+            }
+            rows.add(values);
+        }
+        return rows;
     }
 
     private void flush() {

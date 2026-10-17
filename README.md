@@ -50,11 +50,16 @@ Requires **IntelliJ IDEA 2024.3+** (`sinceBuild=243`) with the bundled Java plug
 3. Check that `.env` was generated/updated and the status bar shows `Env: <name>`.
 4. Run an Application / JUnit configuration, or a local Python configuration with Python Community installed — process environment includes the active profile variables (same-name keys from the profile win).
 
+Before writing, Env Switcher moves a hand-written `.env` to `.env.backup`.
+If that backup already exists, switching stops and leaves both files untouched.
+Symbolic links at `.env` are refused; generated files can be overwritten.
+Add `.env` and `.env.backup` to your project's `.gitignore`.
+
 ### Edit profiles
 
 Use **Settings → Tools → Env Switcher** to add, rename or remove profiles, edit
 descriptions, and add or remove variable rows. Changes remain staged until
-**Apply**; **Reset** reloads the current file and discards staged edits. Applying
+**Apply**; empty variable rows are ignored on Apply. **Reset** reloads the current file and discards staged edits. Applying
 edits to the active profile also refreshes `.env` and the workspace selection.
 Deleting the active profile clears its selection and clears `.env` only when
 its contents still match the generated file, preserving manual changes.
@@ -79,7 +84,9 @@ In **Settings → Tools → Env Switcher**:
   the staged copies and imports. The current environment remains selected.
 
 Imports accept `KEY=value`, empty values, comments, optional `export`, single
-or double quotes, and quoted multiline values. Double quotes decode `\\`,
+or double quotes, and quoted multiline values. In unquoted values, `#` starts a
+comment only at the beginning of the value or after a space or tab; embedded
+`#` characters are preserved. Double quotes decode `\\`,
 `\"`, `\n`, `\r` and `\t`; single-quoted values are literal. Variable references
 such as `${HOST}` and shell expressions remain literal text. Duplicate keys,
 invalid variable names and malformed assignments are rejected with a line

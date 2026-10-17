@@ -1,39 +1,41 @@
 package io.github.ideaenvswitcher.service;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.SimpleProgramParameters;
 import io.github.ideaenvswitcher.model.EnvProfile;
 import org.junit.jupiter.api.Test;
-
-import java.util.LinkedHashMap;
 import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RunConfigurationEnvInjectorTest {
-
     @Test
-    void mergeOverlaysProfileKeysAndKeepsOthers() {
-        Map<String, String> existing = new LinkedHashMap<>();
-        existing.put("PATH", "/usr/bin");
-        existing.put("APP_ENV", "local");
-
-        Map<String, String> profileEnv = new LinkedHashMap<>();
-        profileEnv.put("APP_ENV", "dev");
-        profileEnv.put("API_BASE", "http://localhost:8080");
-        EnvProfile profile = new EnvProfile("dev", null, profileEnv);
-
-        Map<String, String> merged = RunConfigurationEnvInjector.merge(existing, profile);
-
-        assertEquals("/usr/bin", merged.get("PATH"));
-        assertEquals("dev", merged.get("APP_ENV"));
-        assertEquals("http://localhost:8080", merged.get("API_BASE"));
+    void commandLineOverlaysKeysAndKeepsOthers() {
+        var commandLine = new GeneralCommandLine().withEnvironment(Map.of("KEEP", "original", "KEY", "old"));
+        RunConfigurationEnvInjector.applyProfile(commandLine, new EnvProfile("dev", null, Map.of("KEY", "new")));
+        assertEquals(Map.of("KEEP", "original", "KEY", "new"), commandLine.getEnvironment());
     }
 
     @Test
-    void mergeWithNullProfileReturnsCopy() {
-        Map<String, String> existing = Map.of("A", "1");
-        Map<String, String> merged = RunConfigurationEnvInjector.merge(existing, null);
-        assertEquals(Map.of("A", "1"), merged);
-        assertTrue(merged != existing);
+    void parametersOverlayKeysAndKeepOthers() {
+        var parameters = new SimpleProgramParameters();
+        parameters.getEnv().putAll(Map.of("KEEP", "original", "KEY", "old"));
+        RunConfigurationEnvInjector.applyProfile(parameters, new EnvProfile("dev", null, Map.of("KEY", "new")));
+        assertEquals(Map.of("KEEP", "original", "KEY", "new"), parameters.getEnv());
+    }
+
+    @Test
+    void nullAndEmptyProfilesLeaveBothTargetsUnchanged() {
+        var commandLine = new GeneralCommandLine().withEnvironment("KEY", "old");
+        var parameters = new SimpleProgramParameters();
+        parameters.getEnv().put("KEY", "old");
+        RunConfigurationEnvInjector.applyProfile(commandLine, null);
+        RunConfigurationEnvInjector.applyProfile(parameters, null);
+        assertEquals(Map.of("KEY", "old"), commandLine.getEnvironment());
+        assertEquals(Map.of("KEY", "old"), parameters.getEnv());
+        var empty = new EnvProfile("empty", null, Map.of());
+        RunConfigurationEnvInjector.applyProfile(commandLine, empty);
+        RunConfigurationEnvInjector.applyProfile(parameters, empty);
+        assertEquals(Map.of("KEY", "old"), commandLine.getEnvironment());
+        assertEquals(Map.of("KEY", "old"), parameters.getEnv());
     }
 }

@@ -200,4 +200,33 @@ public class EnvSwitcherConfigurableTest {
         }
         return null;
     }
+
+    @Test
+    @RunsInEdt
+    public void pollingKeepsCellEditorOpenAndEmptyRowsAreIgnored() throws Exception {
+        Path base = Path.of(projectRule.getProject().getBasePath());
+        Files.createDirectories(base);
+        Path file = base.resolve("env-profiles.json");
+        EnvProfileStore.save(file, EnvProfileStore.load(file), List.of(new EnvProfile("dev", null, Map.of("KEY", "old"))));
+        var configurable = new EnvSwitcherConfigurable(projectRule.getProject());
+        JComponent panel = configurable.createComponent();
+        try {
+            JTable table = (JTable) find(panel, "profile.variables");
+            assertTrue(table.editCellAt(0, 1));
+            ((JTextField) table.getEditorComponent()).setText("typing");
+            assertTrue(configurable.isModified());
+            assertTrue(table.isEditing());
+            assertEquals("old", table.getModel().getValueAt(0, 1));
+            configurable.apply();
+            assertEquals("typing", EnvProfileStore.load(file).profiles().getFirst().getEnv().get("KEY"));
+            ((JButton) find(panel, "variable.add")).doClick();
+            assertFalse(configurable.isModified());
+            configurable.apply();
+            assertEquals(Map.of("KEY", "typing"), EnvProfileStore.load(file).profiles().getFirst().getEnv());
+            table.setValueAt("nonempty", 1, 1);
+            assertThrows(ConfigurationException.class, configurable::apply);
+        } finally {
+            configurable.disposeUIResources();
+        }
+    }
 }
