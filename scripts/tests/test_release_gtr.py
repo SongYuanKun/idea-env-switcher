@@ -107,7 +107,9 @@ class CredentialTests(unittest.TestCase):
 
 class PublishTests(unittest.TestCase):
     def test_prepare_and_publish_cannot_hold_the_same_repository_lock(self):
-        with tempfile.TemporaryDirectory() as directory:
+        # CI runner 主机名不是 kun-GTR，固定主机名以独立验证锁逻辑
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(release.socket, "gethostname", return_value="kun-GTR"):
             a = release.Release(Path(directory), "0.3.2", "notes")
             b = release.Release(Path(directory), "0.3.2", "notes")
             a.git = b.git = Mock(return_value=directory)
@@ -117,6 +119,13 @@ class PublishTests(unittest.TestCase):
                         self.fail("concurrent release lock was granted")
             with b.lock():
                 pass
+
+    def test_lock_refuses_other_hosts(self):
+        obj = release.Release(Path.cwd(), "0.3.2", "notes")
+        with patch.object(release.socket, "gethostname", return_value="ci-runner"), \
+                self.assertRaisesRegex(release.ReleaseError, "must run on kun-GTR"):
+            with obj.lock():
+                self.fail("lock was granted on another host")
 
     def make_release(self, github=True, marketplace=True, approved=True):
         obj = release.Release(Path.cwd(), "0.3.2", "### Fixed\n- Bundle API\n")
