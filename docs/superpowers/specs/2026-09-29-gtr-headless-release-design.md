@@ -22,7 +22,7 @@
 
 ## 1. 背景与目标
 
-Env Switcher 是公开 GitHub 仓库。现有 `.github/workflows/build.yml` 在 GitHub 托管的 `ubuntu-latest` runner 上运行无密钥的 `test` 和 `buildPlugin`，不负责签名或发布。目标是让构建、测试、签名、GitHub Release 与 JetBrains Marketplace 发布均由 `kun-GTR` 发起并执行；正常发布路径不使用 Chrome/Chromium，Mac 不承担后续构建、签名或发布。
+Env Switcher 是公开 GitHub 仓库。现有 `.github/workflows/build.yml` 在 GitHub 托管的 `ubuntu-latest` runner 上运行无密钥的 `test` 和 `buildPlugin`，不负责签名或发布。目标是让构建、测试、签名、GitHub Release 与 JetBrains Marketplace 发布均由 发布脚本允许的 GTR 主机 发起并执行；正常发布路径不使用 Chrome/Chromium，Mac 不承担后续构建、签名或发布。
 
 不在 GTR 安装 GitHub self-hosted runner。GitHub 官方不建议公开仓库使用持久自托管 runner；发布由人在 GTR 上按需启动本地脚本，避免公开仓库事件触发带凭据的主机任务。
 
@@ -32,13 +32,13 @@ Env Switcher 是公开 GitHub 仓库。现有 `.github/workflows/build.yml` 在 
 
 ## 3. GTR 工具链
 
-- 在 `/home/kun/.local/opt` 安装**固定版本**的 Temurin JDK 21；记录下载来源和预期 SHA-256，安装前用 `sha256sum` 校验，校验失败即停。脚本显式设置 `JAVA_HOME`，并将该 JDK 的 `bin` 与 `/home/kun/.local/bin` 加入子进程 `PATH`；不修改系统默认 Java。
-- 使用仓库已有 Gradle Wrapper（当前 `gradle/wrapper/gradle-wrapper.properties` 指向 Gradle 9.0.0）和 `/home/kun/.local/bin/gh`。脚本还依赖 `curl`、`jq`、`openssl`、`sha256sum`；预检其可执行性和版本。外部工具、JDK 与下载物须固定版本并校验来源及摘要，Gradle Wrapper 和依赖解析异常时停止，不以未校验的临时下载替代。
+- 在 `~/.local/opt` 安装**固定版本**的 Temurin JDK 21；记录下载来源和预期 SHA-256，安装前用 `sha256sum` 校验，校验失败即停。脚本显式设置 `JAVA_HOME`，并将该 JDK 的 `bin` 与 `~/.local/bin` 加入子进程 `PATH`；不修改系统默认 Java。
+- 使用仓库已有 Gradle Wrapper（当前 `gradle/wrapper/gradle-wrapper.properties` 指向 Gradle 9.0.0）和 `~/.local/bin/gh`。脚本还依赖 `curl`、`jq`、`openssl`、`sha256sum`；预检其可执行性和版本。外部工具、JDK 与下载物须固定版本并校验来源及摘要，Gradle Wrapper 和依赖解析异常时停止，不以未校验的临时下载替代。
 - 当前 `build.gradle.kts` 已定义 Java 21、`verifyPlugin`、`signPlugin` 和从环境变量读取的签名参数；脚本调用这些现有任务。Plugin Verifier 所需 IDE/依赖缺失或离线验证失败时，`prepare` 失败，不跳过检查。
 
 ## 4. 凭据与权限
 
-GTR 凭据目录 `/home/kun/.config/idea-env-switcher` 权限为 `0700`；`signing/` 目录同为 `0700`。`signing/chain.crt`、`signing/private.pem`、`signing/private-key-password`、`marketplace.token` 均为 `0600`。`private.pem` 始终保留加密形态；权限、加密状态和证书链有效性均纳入预检。
+GTR 凭据目录 `~/.config/idea-env-switcher` 权限为 `0700`；`signing/` 目录同为 `0700`。`signing/chain.crt`、`signing/private.pem`、`signing/private-key-password`、`marketplace.token` 均为 `0600`。`private.pem` 始终保留加密形态；权限、加密状态和证书链有效性均纳入预检。
 
 现有证书与加密私钥只允许**一次性通过 SSH 从 Mac 迁移到 GTR**。这是初始凭据迁移的唯一 Mac 参与点，不在本轮执行；迁移完成后 Mac 不再参与构建、签名或发布。私钥密码与 Marketplace token 不进入仓库、持久环境配置、命令参数、日志、构建缓存或 shell history。创建受限文件时设 `umask 077`，在 GTR 交互终端用 `read -rsp` 读取，再由 shell 内建 `printf` 写入文件；不回显值。
 
@@ -48,7 +48,7 @@ Marketplace permanent token 由用户在 **GTR Firefox** 登录 JetBrains Profil
 
 ### 通用预检
 
-`prepare` 和 `publish` 都要求 `hostname` 精确为 `kun-GTR`，Git 工作树无已跟踪文件的暂存或未暂存改动，当前分支为 `main`，且 `HEAD` 等于更新后的 `origin/main`。先只读查询远端并更新本地跟踪引用及 tag；若网络失败或远端状态无法确认则停止。读取 `build.gradle.kts` 的 `version`，要求 `CHANGELOG.md` 存在对应版本条目，且 tag `v<version>` 存在。tag 指向的 commit 可以不同于 `HEAD`，但两者的 Git tree 对象必须完全相同；这覆盖 v0.3.2 的 revert/reapply 历史，同时排除代码内容漂移。发布说明取人工维护的对应 changelog/release notes，绝不从原始 git log 自动生成。
+`prepare` 和 `publish` 都要求 `hostname` 精确为 发布脚本允许的 GTR 主机，Git 工作树无已跟踪文件的暂存或未暂存改动，当前分支为 `main`，且 `HEAD` 等于更新后的 `origin/main`。先只读查询远端并更新本地跟踪引用及 tag；若网络失败或远端状态无法确认则停止。读取 `build.gradle.kts` 的 `version`，要求 `CHANGELOG.md` 存在对应版本条目，且 tag `v<version>` 存在。tag 指向的 commit 可以不同于 `HEAD`，但两者的 Git tree 对象必须完全相同；这覆盖 v0.3.2 的 revert/reapply 历史，同时排除代码内容漂移。发布说明取人工维护的对应 changelog/release notes，绝不从原始 git log 自动生成。
 
 预检还验证凭据文件权限、工具版本、JDK 和 CLI 校验值、GitHub/Marketplace 只读 API 可达性及目标版本状态。只读检查不打印 token、私钥或密码。`publish` 重新检查主机、Git、版本、tag、凭据、签名产物和远端版本，不能只信任上一次 `prepare` 的结论。
 

@@ -95,6 +95,11 @@ number; the editor preserves existing drafts when an import fails.
 Importing reads the selected file into the editor. **Apply** follows the normal
 save behavior described above, including refreshing the active profile's `.env`.
 
+Literal import does not configure other tools that read the generated `.env`.
+Those tools may expand `${HOST}` or apply their own quoting rules. Check the
+consumer's interpolation settings when a value must remain literal. Run
+Configuration injection passes profile values directly as environment values.
+
 ### `env-profiles.json` format
 
 ```json
@@ -133,7 +138,7 @@ Artifact: `build/distributions/idea-env-switcher-<version>.zip`
 
 ## Release from GTR
 
-Run [scripts/release-on-gtr.sh](scripts/release-on-gtr.sh) on `kun-GTR`.
+Run [scripts/release-on-gtr.sh](scripts/release-on-gtr.sh) on the configured GTR release host.
 Routine releases use the command line, with no browser or persistent runner.
 GitHub Actions continues to build and test without release credentials.
 

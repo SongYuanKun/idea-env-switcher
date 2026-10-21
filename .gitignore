@@ -3,6 +3,7 @@ build/
 out/
 .idea/
 .worktrees/
+.claude/
 .intellijPlatform/
 *.iml
 *.ipr
